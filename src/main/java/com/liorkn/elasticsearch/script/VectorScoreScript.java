@@ -186,7 +186,7 @@ public final class VectorScoreScript implements LeafSearchScript, ExecutableScri
             }
         }
         if (euclidean) {
-            return score / docVector.length;
+            return 1.0 - score / docVector.length;
         } else if (cosine) {
             // cosine similarity score
             if (docVectorNorm == 0 || magnitude == 0){
