@@ -47,6 +47,7 @@ public final class VectorScoreScript implements LeafSearchScript, ExecutableScri
     private final double magnitude;
 
     private final boolean cosine;
+    private final boolean euclidean;
 
     @Override
     public long runAsLong() {
@@ -111,6 +112,8 @@ public final class VectorScoreScript implements LeafSearchScript, ExecutableScri
         cosine = cosineBool != null ?
                 (boolean)cosineBool :
                 true;
+        final Object euclideanBool = params.get("euclidean");
+        euclidean = euclideanBool != null ? (boolean)euclideanBool : false;
 
         final Object field = params.get("field");
         if (field == null)
@@ -176,9 +179,15 @@ public final class VectorScoreScript implements LeafSearchScript, ExecutableScri
                 docVectorNorm += docVector[i]*docVector[i];
             }
             // dot product
-            score += docVector[i] * inputVector[i];
+            if (euclidean) {
+                score += (docVector[i] - inputVector[i]) * (docVector[i] - inputVector[i]);
+            } else {
+                score += docVector[i] * inputVector[i];
+            }
         }
-        if(cosine) {
+        if (euclidean) {
+            return score / docVector.length;
+        } else if (cosine) {
             // cosine similarity score
             if (docVectorNorm == 0 || magnitude == 0){
                 return 0f;
